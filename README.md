@@ -15,7 +15,7 @@ nix run .
 # MyNixvim
 
 
-This is my first pulic repo and i may or may not have stolen bits of code here an there.
+This is my first public repo and i may or may not have stolen bits of code here an there.
 
 Should work if you have nix configured correctly.
 ```
