@@ -85,6 +85,8 @@
     ];
 
     plugins = {
+      
+
       lualine.enable = true;
       nvim-tree.enable = true;
       nvim-tree.hijackNetrw = false;
