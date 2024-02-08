@@ -1,4 +1,16 @@
-{ self, pkgs, ... }: {
+{ self, pkgs, ... }:
+let
+  nu-grammar = pkgs.tree-sitter.buildGrammar {
+    language = "nu";
+    version = "0.0.0+rev=358c4f5";
+    src = pkgs.fetchFromGitHub {
+      owner = "nushell";
+      repo = "tree-sitter-nu";
+      rev = "2d0dd587dbfc3363d2af4e4141833e718647a67e";
+      hash = "sha256-A0Lpsx0VFRYUWetgX3Bn5osCsLQrZzg90unGg9kTnVg=";
+    };
+  };
+in {
   # Import all your configuration modules here
   imports = [ ./bufferline.nix ];
   config = {
@@ -32,10 +44,18 @@
     #    colorscheme = "rose-pine";
     #
     #  };
-    extraConfigLua = /* lua */ '' 
+    extraConfigLua = /* lua */ 
+    ''
       vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+      local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+      parser_config.nu = {
+        filetype = "nu",
+      }
     '';
-
+    extraFiles = {
+      "/queries/nu/highlights.scm" = builtins.readFile "${nu-grammar}/queries/nu/highlights.scm";
+      "/queries/nu/injections.scm" = builtins.readFile "${nu-grammar}/queries/nu/injections.scm";
+    };
 
     colorschemes.catppuccin = {
       enable = true;
@@ -47,7 +67,7 @@
 
       };
     };
-    
+
     keymaps = [
       {
         # Toggle NvimTree
@@ -64,17 +84,16 @@
         key = "<leader>ut";
         action = "<CMD>UndotreeToggle<CR>";
       }
-#      {
-#        # Escape terminal mode using ESC
-#        mode = "t";
-#        key = "<esc>";
-#        action = "<C-\\><C-n>";
-#      }
+      #      {
+      #        # Escape terminal mode using ESC
+      #        mode = "t";
+      #        key = "<esc>";
+      #        action = "<C-\\><C-n>";
+      #      }
       {
         action = "<cmd>Telescope live_grep<CR>";
         key = "<leader>g";
       }
-
 
       {
         action =
@@ -85,7 +104,6 @@
     ];
 
     plugins = {
-      
 
       lualine.enable = true;
       nvim-tree.enable = true;
@@ -102,6 +120,12 @@
         enable = true;
         nixGrammars = true;
         indent = true;
+        languageRegister.nu = "nu";
+        grammarPackages =
+          [
+            nu-grammar
+          ]
+          ++ pkgs.vimPlugins.nvim-treesitter.allGrammars;
       };
       treesitter-context.enable = false;
       rainbow-delimiters.enable = true;
@@ -111,6 +135,8 @@
       luasnip.enable = true;
       which-key.enable = true;
     };
+  filetype.extension.nu = "nu";
+
 
     plugins.none-ls = {
       enable = true;
@@ -152,6 +178,7 @@
         kotlin-language-server.enable = true;
         nixd.enable = true;
         ruff-lsp.enable = true;
+        nushell.enable = true;
 
       };
       keymaps.lspBuf = {
@@ -182,7 +209,7 @@
       formatting = {
         fields = [ "abbr" "kind" "menu" ];
         format =
-          # lua
+          /* lua */ 
           ''
             function(_, item)
               local icons = {
@@ -240,7 +267,7 @@
         completion = {
           winhighlight =
             "FloatBorder:CmpBorder,Normal:CmpPmenu,CursorLine:CmpSel,Search:PmenuSel";
-            scrollbar = false;
+          scrollbar = false;
           sidePadding = 0;
           border = [ "╭" "─" "╮" "│" "╯" "─" "╰" "│" ];
         };
